@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="900" viewBox="0 0 1280 900" role="img" aria-labelledby="title desc">
+  <title id="title">Restaurant customer and order database schema</title>
+  <desc id="desc">Eight related tables for customers, contacts, payment methods, orders, menu items and favorite orders.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f7f8fa}.card{fill:#fff;stroke:#475569;stroke-width:2;rx:12}.head{fill:#e9f0fb}.name{font:700 20px Arial,sans-serif;fill:#152238}.field{font:15px Arial,sans-serif;fill:#243247}.key{font-weight:700;fill:#155e75}.rel{fill:none;stroke:#5681aa;stroke-width:2.4}.label{font:13px Arial,sans-serif;fill:#37516b}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5681aa"/></marker>
+  </defs>
+  <rect class="bg" width="1280" height="900"/>
+  <!-- Relationships: parent to child -->
+  <path class="rel" marker-end="url(#arrow)" d="M330 155 C370 155 390 130 430 130"/>
+  <path class="rel" marker-end="url(#arrow)" d="M330 180 C370 180 390 340 430 340"/>
+  <path class="rel" marker-end="url(#arrow)" d="M330 202 C370 202 390 560 430 560"/>
+  <path class="rel" marker-end="url(#arrow)" d="M190 252 L190 665 L430 760"/>
+  <path class="rel" marker-end="url(#arrow)" d="M330 222 C500 222 620 115 790 115"/>
+  <path class="rel" marker-end="url(#arrow)" d="M555 407 L555 490"/>
+  <path class="rel" marker-end="url(#arrow)" d="M680 560 L790 555"/>
+  <path class="rel" marker-end="url(#arrow)" d="M790 170 L745 170 L745 355 L790 355"/>
+  <path class="rel" marker-end="url(#arrow)" d="M680 750 L730 750 L730 375 L790 375"/>
+  <path class="rel" marker-end="url(#arrow)" d="M1040 130 L1090 130 L1090 555 L1040 555"/>
+  <text class="label" x="350" y="145">customer_id</text><text class="label" x="350" y="270">customer_id</text>
+  <text class="label" x="350" y="450">customer_id</text><text class="label" x="245" y="660">customer_id</text>
+  <text class="label" x="620" y="190">customer_id</text><text class="label" x="565" y="455">payment_method_id</text>
+  <text class="label" x="695" y="545">order_id</text><text class="label" x="700" y="340">menu_item_id</text>
+  <text class="label" x="690" y="695">favorite_order_id</text><text class="label" x="1095" y="355">menu_item_id</text>
+
+  <!-- customer -->
+  <g transform="translate(60 120)"><rect class="card" width="270" height="132"/><rect class="head" width="270" height="38" rx="12"/><text class="name" x="16" y="26">customer</text><text class="field key" x="16" y="63">PK customer_id</text><text class="field" x="16" y="88">first_name, last_name</text><text class="field" x="16" y="113">joined_date</text></g>
+  <!-- contact_info -->
+  <g transform="translate(430 55)"><rect class="card" width="250" height="150"/><rect class="head" width="250" height="38" rx="12"/><text class="name" x="16" y="26">contact_info</text><text class="field key" x="16" y="63">PK contact_id</text><text class="field key" x="16" y="88">FK customer_id</text><text class="field" x="16" y="113">contact_type, contact_value</text><text class="field" x="16" y="138">is_primary, SMS/email opt-in</text></g>
+  <!-- payment_method -->
+  <g transform="translate(430 275)"><rect class="card" width="250" height="132"/><rect class="head" width="250" height="38" rx="12"/><text class="name" x="16" y="26">payment_method</text><text class="field key" x="16" y="63">PK payment_method_id</text><text class="field key" x="16" y="88">FK customer_id</text><text class="field" x="16" y="113">method_type, provider</text><text class="field" x="16" y="135">last_four, is_preferred</text></g>
+  <!-- customer_order -->
+  <g transform="translate(430 490)"><rect class="card" width="250" height="148"/><rect class="head" width="250" height="38" rx="12"/><text class="name" x="16" y="26">customer_order</text><text class="field key" x="16" y="63">PK order_id</text><text class="field key" x="16" y="88">FK customer_id</text><text class="field key" x="16" y="113">FK payment_method_id</text><text class="field" x="16" y="138">order_date, type, status</text></g>
+  <!-- favorite_order -->
+  <g transform="translate(430 700)"><rect class="card" width="250" height="120"/><rect class="head" width="250" height="38" rx="12"/><text class="name" x="16" y="26">favorite_order</text><text class="field key" x="16" y="63">PK favorite_order_id</text><text class="field key" x="16" y="88">FK customer_id</text><text class="field" x="16" y="113">nickname, created_date</text></g>
+  <!-- menu_item -->
+  <g transform="translate(790 55)"><rect class="card" width="250" height="150"/><rect class="head" width="250" height="38" rx="12"/><text class="name" x="16" y="26">menu_item</text><text class="field key" x="16" y="63">PK menu_item_id</text><text class="field" x="16" y="88">item_name, category</text><text class="field" x="16" y="113">current_price</text><text class="field" x="16" y="138">is_available</text></g>
+  <!-- favorite_order_item -->
+  <g transform="translate(790 290)"><rect class="card" width="250" height="132"/><rect class="head" width="250" height="38" rx="12"/><text class="name" x="16" y="26">favorite_order_item</text><text class="field key" x="16" y="63">PK/FK favorite_order_id</text><text class="field key" x="16" y="88">PK/FK menu_item_id</text><text class="field" x="16" y="113">quantity</text></g>
+  <!-- order_item -->
+  <g transform="translate(790 490)"><rect class="card" width="250" height="132"/><rect class="head" width="250" height="38" rx="12"/><text class="name" x="16" y="26">order_item</text><text class="field key" x="16" y="63">PK/FK order_id</text><text class="field key" x="16" y="88">PK/FK menu_item_id</text><text class="field" x="16" y="113">quantity, price_at_order</text></g>
+  <text class="label" x="60" y="865">One customer can have many contacts, payment methods, orders, and saved favorites.</text>
+  <text class="label" x="790" y="865">A menu item can appear in many order lines and saved favorite-order lines.</text>
+</svg>

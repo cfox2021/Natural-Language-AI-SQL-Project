@@ -1,0 +1,249 @@
+{
+  "strategy": "zero_shot",
+  "model": "gpt-4o-mini",
+  "prompt_prefix": "PRAGMA foreign_keys = ON;\n\nCREATE TABLE customer (\n    customer_id INTEGER PRIMARY KEY,\n    first_name TEXT NOT NULL,\n    last_name TEXT NOT NULL,\n    joined_date TEXT NOT NULL\n);\n\nCREATE TABLE contact_info (\n    contact_id INTEGER PRIMARY KEY,\n    customer_id INTEGER NOT NULL,\n    contact_type TEXT NOT NULL CHECK (contact_type IN ('phone', 'email')),\n    contact_value TEXT NOT NULL,\n    is_primary INTEGER NOT NULL DEFAULT 0 CHECK (is_primary IN (0, 1)),\n    sms_opt_in INTEGER NOT NULL DEFAULT 0 CHECK (sms_opt_in IN (0, 1)),\n    email_opt_in INTEGER NOT NULL DEFAULT 0 CHECK (email_opt_in IN (0, 1)),\n    FOREIGN KEY (customer_id) REFERENCES customer(customer_id),\n    UNIQUE (contact_type, contact_value)\n);\n\nCREATE TABLE payment_method (\n    payment_method_id INTEGER PRIMARY KEY,\n    customer_id INTEGER NOT NULL,\n    method_type TEXT NOT NULL CHECK (method_type IN ('card', 'cash', 'gift card', 'mobile wallet')),\n    provider TEXT,\n    last_four TEXT,\n    is_preferred INTEGER NOT NULL DEFAULT 0 CHECK (is_preferred IN (0, 1)),\n    FOREIGN KEY (customer_id) REFERENCES customer(customer_id),\n    CHECK (last_four IS NULL OR length(last_four) = 4)\n);\n\nCREATE TABLE menu_item (\n    menu_item_id INTEGER PRIMARY KEY,\n    item_name TEXT NOT NULL UNIQUE,\n    category TEXT NOT NULL,\n    current_price REAL NOT NULL CHECK (current_price >= 0),\n    is_available INTEGER NOT NULL DEFAULT 1 CHECK (is_available IN (0, 1))\n);\n\nCREATE TABLE customer_order (\n    order_id INTEGER PRIMARY KEY,\n    customer_id INTEGER NOT NULL,\n    payment_method_id INTEGER,\n    order_date TEXT NOT NULL,\n    order_type TEXT NOT NULL CHECK (order_type IN ('dine-in', 'takeout', 'delivery')),\n    order_status TEXT NOT NULL CHECK (order_status IN ('completed', 'cancelled', 'in progress')),\n    FOREIGN KEY (customer_id) REFERENCES customer(customer_id),\n    FOREIGN KEY (payment_method_id) REFERENCES payment_method(payment_method_id)\n);\n\nCREATE TABLE order_item (\n    order_id INTEGER NOT NULL,\n    menu_item_id INTEGER NOT NULL,\n    quantity INTEGER NOT NULL CHECK (quantity > 0),\n    price_at_order REAL NOT NULL CHECK (price_at_order >= 0),\n    PRIMARY KEY (order_id, menu_item_id),\n    FOREIGN KEY (order_id) REFERENCES customer_order(order_id),\n    FOREIGN KEY (menu_item_id) REFERENCES menu_item(menu_item_id)\n);\n\nCREATE TABLE favorite_order (\n    favorite_order_id INTEGER PRIMARY KEY,\n    customer_id INTEGER NOT NULL,\n    nickname TEXT NOT NULL,\n    created_date TEXT NOT NULL,\n    FOREIGN KEY (customer_id) REFERENCES customer(customer_id),\n    UNIQUE (customer_id, nickname)\n);\n\nCREATE TABLE favorite_order_item (\n    favorite_order_id INTEGER NOT NULL,\n    menu_item_id INTEGER NOT NULL,\n    quantity INTEGER NOT NULL CHECK (quantity > 0),\n    PRIMARY KEY (favorite_order_id, menu_item_id),\n    FOREIGN KEY (favorite_order_id) REFERENCES favorite_order(favorite_order_id),\n    FOREIGN KEY (menu_item_id) REFERENCES menu_item(menu_item_id)\n);\n\nCREATE INDEX idx_contact_customer ON contact_info(customer_id);\nCREATE INDEX idx_payment_customer ON payment_method(customer_id);\nCREATE INDEX idx_orders_customer_date ON customer_order(customer_id, order_date);\nCREATE INDEX idx_order_item_menu ON order_item(menu_item_id);\n Give me one SQLite SELECT statement that answers the question. Use only tables and columns in the schema. Return SQL only, without Markdown or explanation.",
+  "questionResults": [
+    {
+      "question": "Which customers have placed the most completed orders?",
+      "sql": "SELECT c.customer_id, c.first_name, c.last_name, COUNT(co.order_id) AS completed_order_count\nFROM customer c\nJOIN customer_order co ON c.customer_id = co.customer_id\nWHERE co.order_status = 'completed'\nGROUP BY c.customer_id, c.first_name, c.last_name\nORDER BY completed_order_count DESC;",
+      "columns": [
+        "customer_id",
+        "first_name",
+        "last_name",
+        "completed_order_count"
+      ],
+      "rows": [
+        [
+          1,
+          "Maya",
+          "Chen",
+          3
+        ],
+        [
+          2,
+          "Jordan",
+          "Reed",
+          1
+        ],
+        [
+          3,
+          "Avery",
+          "Patel",
+          1
+        ],
+        [
+          4,
+          "Theo",
+          "Ramirez",
+          1
+        ],
+        [
+          5,
+          "Sam",
+          "Brooks",
+          1
+        ]
+      ],
+      "friendlyResponse": "Maya Chen has placed the most completed orders with a total of 3 completed orders.",
+      "error": null
+    },
+    {
+      "question": "Which menu items have sold the most by quantity?",
+      "sql": "SELECT menu_item.item_name, SUM(order_item.quantity) AS total_quantity\nFROM order_item\nJOIN menu_item ON order_item.menu_item_id = menu_item.menu_item_id\nGROUP BY menu_item.item_name\nORDER BY total_quantity DESC;",
+      "columns": [
+        "item_name",
+        "total_quantity"
+      ],
+      "rows": [
+        [
+          "Garden Salad",
+          3
+        ],
+        [
+          "Iced Tea",
+          3
+        ],
+        [
+          "Margherita Pizza",
+          3
+        ],
+        [
+          "Spicy Chicken Sandwich",
+          3
+        ],
+        [
+          "Chocolate Cake",
+          2
+        ],
+        [
+          "Crispy Fries",
+          2
+        ],
+        [
+          "Lemonade",
+          2
+        ],
+        [
+          "Tomato Soup",
+          1
+        ]
+      ],
+      "friendlyResponse": "The menu items that have sold the most by quantity are:\n\n- Garden Salad: 3\n- Iced Tea: 3\n- Margherita Pizza: 3\n- Spicy Chicken Sandwich: 3",
+      "error": null
+    },
+    {
+      "question": "How many customers prefer each payment method?",
+      "sql": "SELECT pm.method_type, COUNT(DISTINCT cm.customer_id) AS customer_preference_count\nFROM payment_method pm\nJOIN customer cm ON pm.customer_id = cm.customer_id\nWHERE pm.is_preferred = 1\nGROUP BY pm.method_type;",
+      "columns": [
+        "method_type",
+        "customer_preference_count"
+      ],
+      "rows": [
+        [
+          "card",
+          3
+        ],
+        [
+          "cash",
+          1
+        ],
+        [
+          "gift card",
+          1
+        ],
+        [
+          "mobile wallet",
+          1
+        ]
+      ],
+      "friendlyResponse": "The customer preferences for each payment method are as follows: \n- Card: 3\n- Cash: 1\n- Gift Card: 1\n- Mobile Wallet: 1",
+      "error": null
+    },
+    {
+      "question": "Which customers do not have a phone number that can receive SMS?",
+      "sql": "SELECT c.customer_id, c.first_name, c.last_name \nFROM customer c \nLEFT JOIN contact_info ci ON c.customer_id = ci.customer_id AND ci.contact_type = 'phone' AND ci.sms_opt_in = 1 \nWHERE ci.contact_id IS NULL;",
+      "columns": [
+        "customer_id",
+        "first_name",
+        "last_name"
+      ],
+      "rows": [
+        [
+          2,
+          "Jordan",
+          "Reed"
+        ],
+        [
+          3,
+          "Avery",
+          "Patel"
+        ],
+        [
+          5,
+          "Sam",
+          "Brooks"
+        ]
+      ],
+      "friendlyResponse": "The customers who do not have a phone number that can receive SMS are: Jordan Reed, Avery Patel, and Sam Brooks.",
+      "error": null
+    },
+    {
+      "question": "What items are in Maya Chen's Friday Pizza Night favorite order?",
+      "sql": "SELECT m.item_name, foi.quantity\nFROM favorite_order fo\nJOIN favorite_order_item foi ON fo.favorite_order_id = foi.favorite_order_id\nJOIN menu_item m ON foi.menu_item_id = m.menu_item_id\nJOIN customer c ON fo.customer_id = c.customer_id\nWHERE c.first_name = 'Maya' AND c.last_name = 'Chen' AND fo.nickname = 'Friday Pizza Night';",
+      "columns": [
+        "item_name",
+        "quantity"
+      ],
+      "rows": [
+        [
+          "Margherita Pizza",
+          1
+        ],
+        [
+          "Iced Tea",
+          2
+        ]
+      ],
+      "friendlyResponse": "Maya Chen's Friday Pizza Night favorite order includes 1 Margherita Pizza and 2 Iced Teas.",
+      "error": null
+    },
+    {
+      "question": "Which customers have ordered Chocolate Cake, and on what dates?",
+      "sql": "SELECT c.first_name, c.last_name, co.order_date \nFROM customer c \nJOIN customer_order co ON c.customer_id = co.customer_id \nJOIN order_item oi ON co.order_id = oi.order_id \nJOIN menu_item m ON oi.menu_item_id = m.menu_item_id \nWHERE m.item_name = 'Chocolate Cake';",
+      "columns": [
+        "first_name",
+        "last_name",
+        "order_date"
+      ],
+      "rows": [
+        [
+          "Maya",
+          "Chen",
+          "2026-09-18"
+        ],
+        [
+          "Sam",
+          "Brooks",
+          "2026-09-27"
+        ]
+      ],
+      "friendlyResponse": "The customers who have ordered Chocolate Cake are Maya Chen on 2026-09-18 and Sam Brooks on 2026-09-27.",
+      "error": null
+    },
+    {
+      "question": "How much has each customer spent on completed orders?",
+      "sql": "SELECT c.customer_id, SUM(oi.price_at_order * oi.quantity) AS total_spent\nFROM customer c\nJOIN customer_order co ON c.customer_id = co.customer_id\nJOIN order_item oi ON co.order_id = oi.order_id\nWHERE co.order_status = 'completed'\nGROUP BY c.customer_id;",
+      "columns": [
+        "customer_id",
+        "total_spent"
+      ],
+      "rows": [
+        [
+          1,
+          53.0
+        ],
+        [
+          2,
+          20.0
+        ],
+        [
+          3,
+          24.5
+        ],
+        [
+          4,
+          16.5
+        ],
+        [
+          5,
+          21.0
+        ]
+      ],
+      "friendlyResponse": "Customer 1 has spent $53.0, Customer 2 has spent $20.0, Customer 3 has spent $24.5, Customer 4 has spent $16.5, and Customer 5 has spent $21.0 on completed orders.",
+      "error": null
+    },
+    {
+      "question": "Customers who prefer Google Pay or Apple Pay",
+      "sql": "SELECT DISTINCT c.customer_id, c.first_name, c.last_name \nFROM customer c\nJOIN payment_method pm ON c.customer_id = pm.customer_id\nWHERE pm.method_type IN ('mobile wallet') AND pm.provider IN ('Google Pay', 'Apple Pay');",
+      "columns": [
+        "customer_id",
+        "first_name",
+        "last_name"
+      ],
+      "rows": [
+        [
+          1,
+          "Maya",
+          "Chen"
+        ],
+        [
+          5,
+          "Sam",
+          "Brooks"
+        ]
+      ],
+      "friendlyResponse": "Customers who prefer Google Pay or Apple Pay are:\n\n1. Maya Chen\n2. Sam Brooks",
+      "error": null
+    }
+  ]
+}
