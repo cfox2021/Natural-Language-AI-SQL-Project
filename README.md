@@ -8,11 +8,9 @@ This project models fictional restaurant customers, their contact preferences, p
 - `setup.sql` creates the tables, relationships, checks, and indexes.
 - `setupData.sql` inserts the fictional restaurant data.
 - `restaurant.sqlite` is the generated SQLite database, included with the project and rebuilt each time the bot runs.
-- `schema.svg` diagrams the database.
+- `schema.jpg` diagrams the database.
 - `examples.md` reports the eight questions, both strategies' observed results, and corrected SQL for the mistakes found.
-- `sample_post.md` contains the class-post write-up.
 - `results/` contains the latest eight-question run logs for both strategies.
-- `config.example.json` documents the local config-file format. It contains only a placeholder; never commit a real `config.json` or API key.
 
 ## Setup and run in Windows PowerShell
 
