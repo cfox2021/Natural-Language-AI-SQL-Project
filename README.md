@@ -52,9 +52,3 @@ The script rebuilds `restaurant.sqlite` from `setup.sql` and `setupData.sql` eve
 - `single_domain_double_shot` adds a restaurant question and SQL example before asking the question.
 
 Both strategies receive the same schema, data, and questions. The latest run logs and comparison are included in `results/` and `examples.md`. The project demonstrates that execution success alone does not establish that SQL answers the intended question.
-
-## Assignment submission checklist
-
-The project package includes the working code, SQLite database, schema image, a purpose statement, one successful example, one unsuccessful example, eight additional question examples, a comparison of two prompting strategies, and the latest response logs. `sample_post.md` is ready to use as the project description for the class channel or GitHub repository.
-
-Before submitting, read the assigned paper and complete your individual self-report in Canvas. Post the project and complete the required reviews of at least three classmates' posts.
